@@ -1,0 +1,23 @@
+# Ignore Python byte-compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environment directories (if using virtualenv)
+venv/
+env/
+
+# Ignore IDE or editor-specific files
+.vscode/
+.idea/
+*.sublime-*
+
+# Ignore log files
+*.log
+
+# Ignore any local configuration files
+*.env
+
+# Ignore pycache directories
+.pycache/

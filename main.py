@@ -1,28 +1,50 @@
-import openai
-from apikey import api_data
 import pyttsx3
 import speech_recognition as sr
-import webbrowser
+import os
+import vertexai
+from dotenv import load_dotenv
 
-openai.api_key=api_data
+load_dotenv()
 
-completion=openai.Completion()
+PROJECT_ID = os.getenv("PROJECT_ID")
+LOCATION = os.getenv("LOCATION") 
 
-def Reply(question):
-    prompt=f'Chando: {question}\n Jarvis: '
-    response=completion.create(prompt=prompt, engine="text-davinci-002", stop=['\Chando'], max_tokens=200)
-    answer=response.choices[0].text.strip()
-    return answer
+vertexai.init(project=PROJECT_ID, location=LOCATION)
 
 engine=pyttsx3.init('sapi5')
 voices=engine.getProperty('voices')
 engine.setProperty('voice', voices[0].id)
 
+
+def create_session():
+    chat_model = vertexai.language_models.ChatModel.from_pretrained("chat-bison@001")
+    chat = chat_model.start_chat()
+    return chat
+
+def response(chat, message):
+    parameters = {
+        "temperature": 0.2,
+        "max_output_tokens": 256,
+        "top_p": 0.8,
+        "top_k": 40
+    }
+    result = chat.send_message(message, **parameters)
+    return result.text
+
+def run_chat(query):
+    chat_model = create_session()
+    print(query)
+    
+    while True:      
+        content = response(chat_model, query)
+        print(f"AI: {content}")
+        return content
+
 def speak(text):
     engine.say(text)
     engine.runAndWait()
 
-speak("Hello How Are You? ")
+speak("Good day Lendly! How are you today?")
 
 def takeCommand():
     r=sr.Recognizer()
@@ -32,10 +54,10 @@ def takeCommand():
         audio = r.listen(source)
     try:
         print("Recognizing.....")
-        query=r.recognize_google(audio, language='en-in')
-        print("Chando Said: {} \n".format(query))
+        query=r.recognize_google(audio, language='en')
+        print("Lendly Said: {} \n".format(query))
     except Exception as e:
-        print("Say That Again....")
+        speak("Say that again boss! ")
         return "None"
     return query
 
@@ -43,14 +65,11 @@ def takeCommand():
 if __name__ == '__main__':
     while True:
         query=takeCommand().lower()
-        ans=Reply(query)
+        ans=run_chat(query)
         print(ans)
         speak(ans)
-        if 'open youtube' in query:
-            webbrowser.open("www.youtube.com")
-        if 'open google' in query:
-            webbrowser.open("www.google.com")
-        if 'bye' in query:
+        if 'jarvis dismiss' in query:
+            speak("goodbye boss")      
             break
 
 
